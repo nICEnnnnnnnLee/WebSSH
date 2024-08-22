@@ -771,7 +771,16 @@ func (s *Ssh) connect() error {
 
 	config := ssh.ClientConfig{
 		User: s.Username,
-		Auth: []ssh.AuthMethod{ssh.Password(s.Password)},
+		Auth: []ssh.AuthMethod{
+			ssh.Password(s.Password),
+			ssh.KeyboardInteractive(func(name, instruction string, questions []string, echos []bool) ([]string, error) {
+				answers := make([]string, len(questions))
+				for i := range answers {
+					answers[i] = s.Password
+				}
+				return answers, nil
+			}),
+		},
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
